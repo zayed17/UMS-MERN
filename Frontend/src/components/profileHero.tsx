@@ -1,6 +1,10 @@
 import { useState } from "react";
+import {  useSelector } from "react-redux";
 
 function ProfileHero() {
+
+  const currentUser = useSelector((state: { user: { currentUser: any; }; }) => state.user.currentUser);
+
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   const toggleModal = () => {
@@ -41,10 +45,10 @@ function ProfileHero() {
               alt="Bonnie image"
             />
             <h5 className="mb-1 text-xl font-medium text-gray-900 dark:text-white">
-              Bonnie Green
+              {currentUser?.name}
             </h5>
             <h3 className="text-sm text-gray-500 dark:text-gray-400">
-              user@gmail.com
+              {currentUser?.email}
             </h3>
           </div>
         </div>

@@ -3,6 +3,7 @@ import HomeScreen from "./pages/HomePage";
 import LoginPage from "./pages/LoginPage";
 import SignupPage from "./pages/SignupPage";
 import ProfilePage from "./pages/ProfilePage";
+import AuthenticatedRoute from "./AuthenticatedRoute";
 
 function App() {
   return (
