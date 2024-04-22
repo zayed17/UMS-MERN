@@ -3,10 +3,10 @@ import SignupHero from "../components/SignupHero";
 
 function SignupPage() {
   return (
-    <div>
+    <>
       <Navbar />
       <SignupHero />
-    </div>
+    </>
   );
 }
 
