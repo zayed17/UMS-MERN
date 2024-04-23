@@ -1,5 +1,5 @@
-import Navbar from "../components/Navbar";
-import SignupHero from "../components/SignupHero";
+import Navbar from "../../components/Navbar";
+import SignupHero from "../../components/SignupHero";
 
 function SignupPage() {
   return (

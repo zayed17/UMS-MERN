@@ -1,15 +1,82 @@
-import { useState } from "react";
-import {  useSelector } from "react-redux";
+import { useState,useRef } from "react";
+import { useSelector } from "react-redux";
+import {useNavigate} from 'react-router-dom'
 
 function ProfileHero() {
-
-  const currentUser = useSelector((state: { user: { currentUser: any; }; }) => state.user.currentUser);
+  const navigate = useNavigate()
+  const fileRef = useRef<HTMLInputElement>(null);
+  
+  const currentUser = useSelector(
+    (state: { user: { currentUser: any } }) => state.user.currentUser
+  );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  const [image,setimage] = useState<any>(null)
+
+  const [name,setName] = useState('')
+  const [email,setEmail] = useState('')
+  const [password,setPassword] = useState('')
+
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
+
+  const handleUpload = (e:any) =>{
+    const file = e.target.files[0]
+    if (file) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        setimage({data:reader.result,filename: file.name});
+      };
+      reader.readAsDataURL(file);
+    }
+  }
+
+  const handleSubmit =  async(e:any) =>{
+    e.preventDefault()
+    
+    console.log(image,"image");
+    const formdata: { [key: string]: any } = {};
+    if(image!=null && image!==currentUser.image){
+      formdata.image= image.filename;
+    }
+
+    if(name!='' && name!==currentUser.name){
+      formdata.name = name
+    }
+
+    if(email!='' && email!==currentUser.email){
+      formdata.email = email
+    }
+
+    if (password !== '' && password.length >= 8) {
+      formdata.password = password
+    }
+
+    
+
+    if (Object.keys(formdata).length === 0) {
+      return;
+  }
+
+  formdata._id = currentUser._id;
+
+    const res = fetch("http://localhost:5000/api/users/updateProfile",{
+      method:'PUT',
+      headers:{
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(formdata),
+    })
+
+    const data = await (await res).json();
+    console.log(data);
+    
+    if(data.success){
+      navigate('/profile')
+    }
+  }
 
   return (
     <div style={{ backgroundColor: "#0e387a", height: "100vh" }}>
@@ -56,15 +123,10 @@ function ProfileHero() {
 
       {/* Modal */}
       {isModalOpen && (
-        <div
-          id="authentication-modal"
-          tabIndex={-1}
-          aria-hidden="true"
-          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
-        >
+        <div id="authentication-modal" tabIndex={-1} aria-hidden="true" className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="relative p-4 w-full max-w-md">
             <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
-              <div className="flex items-center justify-between p-4 md:p-5 border-b rounded-t dark:border-gray-600">
+              <div className="flex  justify-between p-2 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl  font-semibold text-gray-900 dark:text-white">
                  Edit profile
                 </h3>
@@ -91,44 +153,55 @@ function ProfileHero() {
                 </button>
               </div>
               <div className="p-4 md:p-5">
-                <form className="space-y-4" action="#">
+                <form className="space-y-4" onSubmit={handleSubmit}>
+                  <input hidden type="file" ref={fileRef} name="photo" accept="image/*" onChange={handleUpload} id="photo"  />
 
-                <div>
+                  <div className="flex items-center justify-center">
+                    <div>
+                      <img
+                        className="w-24 h-24 rounded-full shadow-lg"
+                        src={image?.data || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_2K8naWlXYjt_jVlFPSrF6BL9K-cOQhBwtVL7_rcOGQ&s"}
+                        alt="Bonnie image"
+                        onClick={()=>fileRef?.current?.click()}
+                      />
+                    </div>
+                  </div>
+                  <div>
                     <label
-                      htmlFor="password"
+                      htmlFor="name"
                       className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
                     >
                       Your Name
                     </label>
                     <input
-                      type="password"
-                      name="password"
-                      id="password"
-                      placeholder="••••••••"
+                      type="text"
+                      name="name"
+                      id="name"
+                      defaultValue={currentUser.name}
+                      placeholder="name"
+                      onChange={(e)=>setName(e.target.value)}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
+                      
                     />
                   </div>
-
 
                   <div>
                     <label
                       htmlFor="email"
-                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                    >
+                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
                       Your email
                     </label>
                     <input
                       type="email"
                       name="email"
                       id="email"
+                      defaultValue={currentUser.email}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       placeholder="name@company.com"
-                      required
+                      onChange={(e)=>setEmail(e.target.value)}
+                      
                     />
                   </div>
-
-                
 
                   <div>
                     <label
@@ -142,18 +215,18 @@ function ProfileHero() {
                       name="password"
                       id="password"
                       placeholder="••••••••"
+                      onChange={(e)=>setPassword(e.target.value)}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      required
+                      
                     />
                   </div>
-                 
+
                   <button
                     type="submit"
                     className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
                   >
                     Save changes
                   </button>
-              
                 </form>
               </div>
             </div>

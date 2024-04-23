@@ -47,3 +47,19 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
       res.status(500).json({ success: false, message: 'Server error' });
     }       
   });
+
+  export const updateProfile  = asyncHandler(async (req: Request, res: Response) => {
+     try {
+      console.log("dfs");
+      
+      const { _id, ...updateData } = req.body;
+      console.log(_id);
+      
+      const updatedUser = await userModel.findByIdAndUpdate(_id, updateData, { new: true });
+      console.log("dfssfs");
+      
+      res.status(200).json({ success: true, user: updatedUser });
+     } catch (error) {
+      console.log(error);
+     }
+  })
