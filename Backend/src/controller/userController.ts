@@ -37,7 +37,7 @@ export const loginController = asyncHandler(async (req: Request, res: Response) 
       const user = await userModel.findOne({ email });
   
       if (user && (await bcrypt.compare(password, user.password))) {
-        const token = jwt.sign({ userId: user._id }, process.env.JWT_SECRET || 'defaultSecret',{ expiresIn: '1h' });
+        const token = jwt.sign({ wa: user._id }, process.env.JWT_SECRET || 'defaultSecret',{ expiresIn: '1h' });
         res.cookie('access_token',token,{httpOnly:true}).status(200).json({user,success:true})
       } else {
         res.status(401).json({ success: false, message: 'Invalid email or password' });

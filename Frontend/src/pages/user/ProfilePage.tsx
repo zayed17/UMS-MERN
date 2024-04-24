@@ -1,5 +1,5 @@
-import Navbar from "../../components/Navbar";
-import ProfileHero from "../../components/profileHero";
+import Navbar from "../../components/user/Navbar";
+import ProfileHero from "../../components/user/profileHero";
 
 function ProfilePage() {
   return (

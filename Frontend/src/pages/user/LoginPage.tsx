@@ -1,5 +1,5 @@
-import LoginHero from "../../components/LoginHero";
-import Navbar from "../../components/Navbar";
+import LoginHero from "../../components/user/LoginHero";
+import Navbar from "../../components/user/Navbar";
 
 function LoginPage() {
   return (

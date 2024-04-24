@@ -1,9 +1,19 @@
 import { useState,useRef } from "react";
 import { useSelector } from "react-redux";
 import {useNavigate} from 'react-router-dom'
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
+
 
 function ProfileHero() {
   const navigate = useNavigate()
+
+  const showToastMessage = () => {
+    toast.success("Success Notification !", {
+      position: "top-right",
+    });
+  };
+
   const fileRef = useRef<HTMLInputElement>(null);
   
   const currentUser = useSelector(
@@ -54,8 +64,6 @@ function ProfileHero() {
       formdata.password = password
     }
 
-    
-
     if (Object.keys(formdata).length === 0) {
       return;
   }
@@ -74,7 +82,7 @@ function ProfileHero() {
     console.log(data);
     
     if(data.success){
-      navigate('/profile')
+      toggleModal()
     }
   }
 
@@ -221,10 +229,7 @@ function ProfileHero() {
                     />
                   </div>
 
-                  <button
-                    type="submit"
-                    className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
-                  >
+                  <button onClick={showToastMessage} type="submit" className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
                     Save changes
                   </button>
                 </form>
@@ -233,6 +238,17 @@ function ProfileHero() {
           </div>
         </div>
       )}
+      <ToastContainer
+        position="top-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+      />
     </div>
   );
 }

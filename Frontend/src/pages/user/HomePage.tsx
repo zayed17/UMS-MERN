@@ -1,5 +1,5 @@
-import Home from "../../components/Home";
-import Navbar from "../../components/Navbar";
+import Home from "../../components/user/Home";
+import Navbar from "../../components/user/Navbar";
 
 function HomeScreen() {
   return (

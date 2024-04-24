@@ -3,6 +3,7 @@ import connectDB from './config/db';
 import cors from 'cors';
 import cookieParser from 'cookie-parser'; 
 import userRoute from './routes/userRoute';
+import adminRoute from './routes/adminRoute'
 
 const app = express();
 
@@ -18,5 +19,7 @@ app.use(cors({
 }));
 
 app.use('/api/users', userRoute);
+app.use('/api/admin', adminRoute);
+
 
 app.listen(5000, () => console.log("server is running"));

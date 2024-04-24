@@ -3,7 +3,7 @@ import HomeScreen from "./pages/user/HomePage";
 import LoginPage from "./pages/user/LoginPage";
 import SignupPage from "./pages/user/SignupPage";
 import ProfilePage from "./pages/user/ProfilePage";
-import AuthenticatedRoute from "./AuthenticatedRoute";
+import AdminLogin from "./pages/admin/AdminLogin";
 
 function App() {
   return (
@@ -14,6 +14,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/signup" element={<SignupPage />} />
           <Route path="/profile" element={<ProfilePage />} />
+          <Route path="/admin" element={<AdminLogin />} />
         </Routes>
       </Router>
     </>
