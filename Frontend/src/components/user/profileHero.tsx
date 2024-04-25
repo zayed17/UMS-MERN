@@ -129,7 +129,6 @@ function ProfileHero() {
         </div>
       </div>
 
-      {/* Modal */}
       {isModalOpen && (
         <div id="authentication-modal" tabIndex={-1} aria-hidden="true" className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
           <div className="relative p-4 w-full max-w-md">
