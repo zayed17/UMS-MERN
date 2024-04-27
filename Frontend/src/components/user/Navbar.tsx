@@ -1,4 +1,3 @@
-import  {useEffect} from "react";
 import Cookies from "js-cookie";
 import { Link, useLocation, useNavigate } from "react-router-dom";
 import { useSelector, useDispatch } from "react-redux";
@@ -7,9 +6,8 @@ import { logout } from "../../redux/user/userSlice";
 function Navbar() {
   const navigate = useNavigate();
   const dispatch = useDispatch();
-  const currentUser = useSelector(
-    (state: { user: { currentUser: any } }) => state.user.currentUser
-  );
+  const currentUser = useSelector((state:any) => state.user.currentUser);
+
   const location = useLocation();
 
   const handleLogout = () => {
@@ -18,22 +16,6 @@ function Navbar() {
   };
 
   const isAuthenticated = currentUser !== null;
-
-  useEffect(() => {
-    if (
-      isAuthenticated &&
-      (location.pathname === "/login" ||
-        location.pathname === "/signup" ||
-        location.pathname == "/")
-    ) {
-      navigate("/");
-    } else if (
-      (!isAuthenticated && location.pathname === "/profile") ||
-      location.pathname == "/"
-    ) {
-      navigate("/login");
-    }
-  }, [isAuthenticated, location.pathname]);
 
   // Authentication button
   let authButton;

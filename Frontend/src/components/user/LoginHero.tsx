@@ -2,15 +2,34 @@ import { useState } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { useDispatch } from "react-redux";
 import { signInSuccess } from "../../redux/user/userSlice";
+import { useAuthentication } from "../../hook/AuthHook";
 
 export default function LoginHero() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
-  const [email, setEmail] = useState<string>("");
-  const [password, setPassword] = useState<string>("");
-
-  const handleSubmit = async (e: { preventDefault: () => void }) => {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [emailError, setEmailError] = useState("");
+  const [passwordError, setPasswordError] = useState("");
+  const [errorMessage, setErrorMessage] = useState("");
+  
+  const {isLoading,isLoggedIn} = useAuthentication()
+  const handleSubmit = async (e:any) => {
     e.preventDefault();
+
+    setEmailError("");
+    setPasswordError("");
+    setErrorMessage("");
+
+    if (!email.trim()) {
+      setEmailError("Email is required");
+      return;
+    }
+
+    if (!password.trim()) {
+      setPasswordError("Password is required");
+      return;
+    }
 
     try {
       const res = await fetch("http://localhost:5000/api/users/login", {
@@ -18,6 +37,7 @@ export default function LoginHero() {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: 'include', 
         body: JSON.stringify({ email, password }),
       });
 
@@ -28,13 +48,23 @@ export default function LoginHero() {
         dispatch(signInSuccess(data.user));
         navigate("/");
       } else {
-        console.error("Login failed:", data.message);
+        setErrorMessage("Wrong Input");
       }
     } catch (error) {
-      console.error("Error during login:");
+      console.error("Error during login:", error);
+      setErrorMessage("An error occurred during login");
     }
   };
 
+  if(isLoading){
+    return <div>Loading</div>
+  }
+
+  if(isLoggedIn){
+    navigate('/')
+    return null
+  }
+  
   return (
     <div>
       <section className="bg-blue-900">
@@ -44,6 +74,7 @@ export default function LoginHero() {
               <h1 className="text-xl font-bold leading-tight tracking-tight text-gray-900 md:text-2xl dark:text-white">
                 Login Your Account
               </h1>
+                {errorMessage && <p className="text-sm text-red-500">{errorMessage}</p>}
               <form className="space-y-4 md:space-y-6" onSubmit={handleSubmit}>
                 <div>
                   <label
@@ -58,10 +89,11 @@ export default function LoginHero() {
                     type="email"
                     name="email"
                     id="email"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
+                    className={`bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 ${emailError && 'border-red-500'}`}
                     placeholder="name@company.com"
-                    required
+                    
                   />
+                  {emailError && <p className="text-sm text-red-500">{emailError}</p>}
                 </div>
                 <div>
                   <label
@@ -77,10 +109,12 @@ export default function LoginHero() {
                     name="password"
                     id="password"
                     placeholder="••••••••"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500"
-                    required
+                    className={`bg-gray-50 border border-gray-300 text-gray-900 sm:text-sm rounded-lg focus:ring-primary-600 focus:border-primary-600 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 ${passwordError && 'border-red-500'}`}
+                    
                   />
+                  {passwordError && <p className="text-sm text-red-500">{passwordError}</p>}
                 </div>
+
 
                 <button
                   type="submit"

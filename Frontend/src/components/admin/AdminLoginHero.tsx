@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useLoginMutation } from "../../redux/admin/adminApi";
+import { useAdminAuthentication } from '../../hook/AuthHook';
 import { Formik, Form, Field, ErrorMessage } from "formik";
 import * as Yup from "yup";
 
@@ -14,8 +15,15 @@ const validationSchema = Yup.object().shape({
 });
 
 export default function LoginHero() {
-  const [errorMessage, setErrorMessage] = useState("");
+
   const navigate = useNavigate();
+
+  const {isLoggedIn} = useAdminAuthentication()
+  if(isLoggedIn){
+    navigate('/admin/dashboard')
+    return null
+  }
+  const [errorMessage, setErrorMessage] = useState("");
   const [adminLogin] = useLoginMutation();
 
   const handleSubmit = async (values: { email: string; password: string }) => {

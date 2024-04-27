@@ -1,13 +1,16 @@
-import { useState,useRef } from "react";
-import { useSelector } from "react-redux";
-import {useNavigate} from 'react-router-dom'
+import { useState, useRef } from "react";
+import { useSelector ,useDispatch } from "react-redux";
 import { ToastContainer, toast } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import { signInSuccess } from "../../redux/user/userSlice";
+import { useAuthentication } from "../../hook/AuthHook";
+import { useNavigate } from "react-router-dom";
 
 
 function ProfileHero() {
+  const {isLoading,isLoggedIn} = useAuthentication()
   const navigate = useNavigate()
-
+  const dispatch = useDispatch()
   const showToastMessage = () => {
     toast.success("Success Notification !", {
       position: "top-right",
@@ -15,77 +18,85 @@ function ProfileHero() {
   };
 
   const fileRef = useRef<HTMLInputElement>(null);
-  
+
   const currentUser = useSelector(
     (state: { user: { currentUser: any } }) => state.user.currentUser
   );
 
   const [isModalOpen, setIsModalOpen] = useState(false);
-  const [image,setimage] = useState<any>(null)
-
-  const [name,setName] = useState('')
-  const [email,setEmail] = useState('')
-  const [password,setPassword] = useState('')
-
+  const [image, setimage] = useState<any>(null);
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [error, setError] = useState<string>("");
 
   const toggleModal = () => {
     setIsModalOpen(!isModalOpen);
   };
 
-  const handleUpload = (e:any) =>{
-    const file = e.target.files[0]
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = () => {
-        setimage({data:reader.result,filename: file.name});
-      };
-      reader.readAsDataURL(file);
-    }
-  }
+  const handleImageChange = (event: any) => {
+    setimage(event.target.files[0]);
+  };
 
-  const handleSubmit =  async(e:any) =>{
-    e.preventDefault()
-    
-    console.log(image,"image");
-    const formdata: { [key: string]: any } = {};
-    if(image!=null && image!==currentUser.image){
-      formdata.image= image.filename;
-    }
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
 
-    if(name!='' && name!==currentUser.name){
-      formdata.name = name
-    }
+    setError("");
 
-    if(email!='' && email!==currentUser.email){
-      formdata.email = email
-    }
 
-    if (password !== '' && password.length >= 8) {
-      formdata.password = password
-    }
-
-    if (Object.keys(formdata).length === 0) {
+    if (!name || !email) {
+      setError("Name and email are required");
       return;
-  }
-
-  formdata._id = currentUser._id;
-
-    const res = fetch("http://localhost:5000/api/users/updateProfile",{
-      method:'PUT',
-      headers:{
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(formdata),
-    })
-
-    const data = await (await res).json();
-    console.log(data);
-    
-    if(data.success){
-      toggleModal()
     }
-  }
 
+    const formData = new FormData();
+
+    if (image != null && image !== currentUser.image) {
+      formData.append("image", image);
+    }
+
+    if (name !== "" && name !== currentUser.name) {
+      formData.append("name", name);
+    }
+
+    if (email !== "" && email !== currentUser.email) {
+      formData.append("email", email);
+    }
+
+    if (!formData.entries().next().done) {
+      formData.append("id", currentUser._id);
+    } else {
+      setError("No changes to save");
+      return;
+    }
+
+    try {
+      const res = await fetch("http://localhost:5000/api/users/updateProfile", {
+        method: "PUT",
+        body: formData,
+      });
+
+      const data = await res.json();
+
+      if (data.success) {
+        dispatch(signInSuccess(data.user))
+        showToastMessage();
+        toggleModal();
+      }else{
+        setError("Email alreadyy used!");
+      }
+    } catch (error) {
+      console.error("There was a problem with the fetch operation:", error);
+    }
+  };
+
+  if(isLoading){
+      return <div>Loading</div>
+    }
+  
+    if(!isLoggedIn){
+      navigate('/login')
+      return null
+    }
   return (
     <div style={{ backgroundColor: "#0e387a", height: "100vh" }}>
       <div className="flex justify-center items-center h-screen">
@@ -116,7 +127,7 @@ function ProfileHero() {
           <div className="flex flex-col items-center pb-10">
             <img
               className="w-24 h-24 mb-3 rounded-full shadow-lg"
-              src="https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_2K8naWlXYjt_jVlFPSrF6BL9K-cOQhBwtVL7_rcOGQ&s"
+              src={`src/assets/${currentUser.image}`}
               alt="Bonnie image"
             />
             <h5 className="mb-1 text-xl font-medium text-gray-900 dark:text-white">
@@ -130,12 +141,17 @@ function ProfileHero() {
       </div>
 
       {isModalOpen && (
-        <div id="authentication-modal" tabIndex={-1} aria-hidden="true" className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50">
+        <div
+          id="authentication-modal"
+          tabIndex={-1}
+          aria-hidden="true"
+          className="fixed inset-0 flex items-center justify-center bg-black bg-opacity-40 z-50"
+        >
           <div className="relative p-4 w-full max-w-md">
             <div className="relative bg-white rounded-lg shadow dark:bg-gray-700">
               <div className="flex  justify-between p-2 border-b rounded-t dark:border-gray-600">
                 <h3 className="text-xl  font-semibold text-gray-900 dark:text-white">
-                 Edit profile
+                  Edit profile
                 </h3>
                 <button
                   type="button"
@@ -161,18 +177,27 @@ function ProfileHero() {
               </div>
               <div className="p-4 md:p-5">
                 <form className="space-y-4" onSubmit={handleSubmit}>
-                  <input hidden type="file" ref={fileRef} name="photo" accept="image/*" onChange={handleUpload} id="photo"  />
+                  <input
+                    hidden
+                    type="file"
+                    ref={fileRef}
+                    name="photo"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    id="photo"
+                  />
 
                   <div className="flex items-center justify-center">
                     <div>
                       <img
                         className="w-24 h-24 rounded-full shadow-lg"
-                        src={image?.data || "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcT_2K8naWlXYjt_jVlFPSrF6BL9K-cOQhBwtVL7_rcOGQ&s"}
-                        alt="Bonnie image"
-                        onClick={()=>fileRef?.current?.click()}
+                        src={`src/assets/${currentUser.image}`}
+                        alt="Bonnie image"  
+                        onClick={() => fileRef?.current?.click()}
                       />
                     </div>
                   </div>
+
                   <div>
                     <label
                       htmlFor="name"
@@ -186,16 +211,16 @@ function ProfileHero() {
                       id="name"
                       defaultValue={currentUser.name}
                       placeholder="name"
-                      onChange={(e)=>setName(e.target.value)}
+                      onChange={(e) => setName(e.target.value)}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      
                     />
                   </div>
 
                   <div>
                     <label
                       htmlFor="email"
-                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white">
+                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
+                    >
                       Your email
                     </label>
                     <input
@@ -205,30 +230,16 @@ function ProfileHero() {
                       defaultValue={currentUser.email}
                       className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
                       placeholder="name@company.com"
-                      onChange={(e)=>setEmail(e.target.value)}
-                      
+                      onChange={(e) => setEmail(e.target.value)}
                     />
                   </div>
 
-                  <div>
-                    <label
-                      htmlFor="password"
-                      className="block mb-2 text-sm font-medium text-gray-900 dark:text-white"
-                    >
-                      Your password
-                    </label>
-                    <input
-                      type="password"
-                      name="password"
-                      id="password"
-                      placeholder="••••••••"
-                      onChange={(e)=>setPassword(e.target.value)}
-                      className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-600 dark:border-gray-500 dark:placeholder-gray-400 dark:text-white"
-                      
-                    />
-                  </div>
+                  {error && <p className="text-red-500">{error}</p>}
 
-                  <button onClick={showToastMessage} type="submit" className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800">
+                  <button
+                    type="submit"
+                    className="w-full text-white bg-blue-700 hover:bg-blue-800 focus:ring-4 focus:outline-none focus:ring-blue-300 font-medium rounded-lg text-sm px-5 py-2.5 text-center dark:bg-blue-600 dark:hover:bg-blue-700 dark:focus:ring-blue-800"
+                  >
                     Save changes
                   </button>
                 </form>
